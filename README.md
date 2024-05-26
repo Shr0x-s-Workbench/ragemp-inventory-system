@@ -48,4 +48,12 @@ This class provides comprehensive functionality for managing player inventories,
 - `startUsingItem`: Initiates the usage of an item with a specified description and duration.
 
 
-...wip
+
+# Getting Started with UI
+
+**Creating package2 folder:**<br>
+![.vid](./gifs/create_package2.gif)<br>
+**Building Inventory UI:**<br>
+![.vid](./gifs/build_frontend.gif)<br>
+**Moving built files to package2:**<br>
+![.vid](./gifs/move_to_package2.gif)<br>
