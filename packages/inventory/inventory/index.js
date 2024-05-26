@@ -1,4 +1,4 @@
-const uuidv4 = require("uuid");
+const { v4 } = require("uuid");
 const { splitInventoryItem } = require("./SplitItem.module");
 const { moveInventoryItem } = require("./MoveItem.module");
 const { openInventoryItem } = require("./OpenItem.module");
@@ -12,6 +12,7 @@ const { ItemObject } = require("./ItemObject.class");
 const torsoDataMale = require("../json/maleTorso.json");
 const femaleTorsos = require("../json/femaleTorso.json");
 
+const uuid = v4;
 
 
 function tryParse(obj) {

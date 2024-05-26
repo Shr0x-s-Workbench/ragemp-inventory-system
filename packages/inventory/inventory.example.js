@@ -7,12 +7,7 @@ const { inventorydataPresset } = require("./inventory/Assets.module");
 const { Inventory } = require("./inventory");
 const onPlayerJoin = async (player) => {
     try {
-        console.log(inventorydataPresset)
         player.inventory = new Inventory(player, inventorydataPresset.clothes, inventorydataPresset.pockets, inventorydataPresset.quickUse);
-
-        console.log(player.inventory)
-
-        //Required stuff
         player.cdata = {};
         player.giveWeaponEx = function (weapon, totalAmmo, ammoInClip) {
             this.call("client::weapon:giveWeapon", [weapon, totalAmmo, ammoInClip]);

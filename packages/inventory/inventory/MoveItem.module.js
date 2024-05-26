@@ -1,5 +1,6 @@
 const { v4 } = require("uuid");
 const { ItemObject } = require("./ItemObject.class");
+const uuid = v4;
 
 // type MovingComponent = inventoryAssets.INVENTORY_CATEGORIES | "quickUse" | "groundItems";
 

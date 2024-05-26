@@ -27,24 +27,11 @@
 	"author": "rShr0x",
 	"license": "MIT",
 	"dependencies": {
-		"colorette": "^2.0.19",
-		"dotenv": "^16.0.3",
 		"lodash": "^4.17.21",
-		"ts-loader": "^9.4.2",
-		"uuid": "^9.0.0",
-		"webpack-cli": "^5.0.1",
-		"webpack-merge": "^5.8.0",
-		"yarn": "^1.22.19"
+		"uuid": "^9.0.0"
 	},
 	"devDependencies": {
-		"@ragempcommunity/types-client": "^2.1.6",
-		"@ragempcommunity/types-server": "^2.1.6",
-		"@types/lodash.clonedeep": "^4.5.7",
 		"@types/node": "^20.12.11",
-		"@types/uuid": "^9.0.1",
-		"fork-ts-checker-webpack-plugin": "^9.0.2",
-		"tsconfig-paths-webpack-plugin": "^4.0.1",
-		"webpack": "^5.78.0",
-		"webpack-node-externals": "^3.0.0"
+		"@types/uuid": "^9.0.1"
 	}
 }
