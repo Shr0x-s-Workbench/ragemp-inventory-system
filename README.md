@@ -1,5 +1,7 @@
 # RAGE Multiplayer Inventory System
 
+https://rage.mp/files/file/501-inventory-system/
+
 ## Class Structure
 
 The `Inventory` class is the main class for managing player inventories in a game. It extends from other classes such as `InventoryClothes`, `QuickUse`, and `InventoryItem`.
