@@ -1,9 +1,8 @@
-export const openInventoryItem = (player: PlayerMp, data: string) => {
+const openInventoryItem = (player, data) => {
     try {
-        let { item }: { item: RageShared.Interfaces.Inventory.IInventoryItem } = JSON.parse(data);
+        let { item } = JSON.parse(data);
         if (!item) return;
         switch (item.type) {
-            //backpack?...
 
             default:
                 return;
@@ -12,3 +11,4 @@ export const openInventoryItem = (player: PlayerMp, data: string) => {
         console.log("openInventoryItem err: ", err);
     }
 };
+module.exports = { openInventoryItem }

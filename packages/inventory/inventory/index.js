@@ -1,22 +1,20 @@
-import { v4 as uuidv4 } from "uuid";
-import { splitInventoryItem } from "./SplitItem.module";
-import { moveInventoryItem } from "./MoveItem.module";
-import { openInventoryItem } from "./OpenItem.module";
-import { useInventoryItem } from "./UseItem.module";
-import { manageInventoryFastSlot } from "./Quickuse.module";
-import { backpackQuality, backpackWeight, defaultClothes } from "./Assets.module";
-import { inventoryAssets } from "./Items.module";
-import { dropInventoryItem } from "./DropItem.module";
-import { ItemObject } from "./ItemObject.class";
+const uuidv4 = require("uuid");
+const { splitInventoryItem } = require("./SplitItem.module");
+const { moveInventoryItem } = require("./MoveItem.module");
+const { openInventoryItem } = require("./OpenItem.module");
+const { useInventoryItem } = require("./UseItem.module");
+const { manageInventoryFastSlot } = require("./Quickuse.module");
+const { backpackQuality, backpackWeight, defaultClothes } = require("./Assets.module");
+const { inventoryAssets } = require("./Items.module");
+const { dropInventoryItem } = require("./DropItem.module");
+const { ItemObject } = require("./ItemObject.class");
 
-import * as maleClothes from "../json/maleTorso.json";
-import * as femaleClothes from "../json/femaleTorso.json";
+const torsoDataMale = require("../json/maleTorso.json");
+const femaleTorsos = require("../json/femaleTorso.json");
 
-type IClothesData = Record<number, Record<number, { BestTorsoDrawable: number; BestTorsoTexture: number }>>;
-const torsoDataMale: IClothesData = maleClothes;
-const femaleTorsos: IClothesData = femaleClothes;
 
-function tryParse(obj: any): any {
+
+function tryParse(obj) {
     try {
         return JSON.parse(obj);
     } catch (_err) {
@@ -24,30 +22,24 @@ function tryParse(obj: any): any {
     }
 }
 
-export class Inventory {
-    private readonly p: PlayerMp;
+class Inventory {
 
-    public items: {
-        pockets: { [key: number]: Omit<RageShared.Interfaces.Inventory.IInventoryItem, "components"> | null };
-        clothes: { [key: number]: RageShared.Interfaces.Inventory.IInventoryItem | null };
-    } = { clothes: {}, pockets: {} };
 
-    public quickUse: { [key: number]: { component: "pockets"; id: number } | null };
-    public weight: number = 40.0;
-
-    public equippedWeapons: { [key: number]: { weaponhash: number; isActive: boolean } } = {};
 
     constructor(
-        p: PlayerMp,
-        clothes: { [key: number]: RageShared.Interfaces.Inventory.IInventoryItem | null },
-        pockets: { [key: number]: RageShared.Interfaces.Inventory.IInventoryItem | null },
-        quickUse: { [key: number]: { component: "pockets"; id: number } | null }
+        p,
+        clothes,
+        pockets,
+        quickUse
     ) {
         this.p = p;
+        this.items = {}
+
         this.items.clothes = clothes;
         this.items.pockets = pockets;
         this.quickUse = quickUse;
         this.weight = 40.0;
+        this.equippedWeapons = {}
     }
 
     /**
@@ -55,7 +47,7 @@ export class Inventory {
      * @param component which component to reset the item data to
      * @param slotid slot id to reset the data
      */
-    public resetItemData(component: "pockets", slotid: number) {
+    resetItemData(component, slotid) {
         this.items[component][slotid] = null;
     }
 
@@ -64,7 +56,7 @@ export class Inventory {
      * @param type Clothing type
      * @param slot Clothing slot (0-13)
      */
-    public resetClothingItemData(slot: number): void {
+    resetClothingItemData(slot) {
         this.items.clothes[slot] = null;
     }
 
@@ -72,19 +64,19 @@ export class Inventory {
      * Get a free available inventory item slot
      * @returns itemIndex (slot index) && type: category type
      */
-    public getFreeSlot(): { itemIndex: number; type: inventoryAssets.INVENTORY_CATEGORIES.POCKETS } {
-        let type: inventoryAssets.INVENTORY_CATEGORIES = inventoryAssets.INVENTORY_CATEGORIES.POCKETS;
+    getFreeSlot() {
+        let type = inventoryAssets.INVENTORY_CATEGORIES.POCKETS;
         let itemIndex = Object.values(this.items.pockets).findIndex((e) => !e);
         return { itemIndex, type };
     }
 
-    public getTotalFreeSlots() {
+    getTotalFreeSlots() {
         let itemIndex = Object.values(this.items.pockets).filter((e) => !e).length;
         return itemIndex;
     }
 
-    public getClothingIndex(type: RageShared.Enums.ITEM_TYPES) {
-        const clothingList: { [key: string]: number } = {
+    getClothingIndex(type) {
+        const clothingList = {
             [RageShared.Enums.ITEM_TYPES.ITEM_TYPE_HAT]: 0,
             [RageShared.Enums.ITEM_TYPES.ITEM_TYPE_MASK]: 1,
             [RageShared.Enums.ITEM_TYPES.ITEM_TYPE_GLASSES]: 2,
@@ -103,7 +95,7 @@ export class Inventory {
         return clothingList[type] ?? -1;
     }
 
-    public addItem(type: RageShared.Enums.ITEM_TYPES): RageShared.Interfaces.Inventory.IInventoryItem | null {
+    addItem(type) {
         const itemData = inventoryAssets.items[type];
         const { itemIndex } = this.getFreeSlot();
         if (!itemData || itemIndex < 0) return null;
@@ -119,11 +111,11 @@ export class Inventory {
      * @param equipNow Whether to equip it right away or not (rewrites current item if any)
      * @returns InventoryItem | null
      */
-    public addClothingItem(
-        type: RageShared.Enums.ITEM_TYPES,
-        data: { component: number; drawable: number; texture: number },
-        equipNow: boolean = false
-    ): RageShared.Interfaces.Inventory.IInventoryItem | null {
+    addClothingItem(
+        type,
+        data,
+        equipNow = false
+    ) {
         const [itemData, itemIndex] = [inventoryAssets.items[type], equipNow ? this.getFreeSlot().itemIndex : this.getClothingIndex(type)];
         if (!itemData || itemIndex < 0) return null;
         const items = equipNow ? this.items.clothes : this.items.pockets;
@@ -131,9 +123,9 @@ export class Inventory {
         return items[itemIndex];
     }
 
-    public resetBackpackItemData() {}
+    resetBackpackItemData() { }
 
-    public clearQuickUseSlot() {}
+    clearQuickUseSlot() { }
 
     /**
      * Checks if an item is in quick use by component and id.
@@ -142,7 +134,7 @@ export class Inventory {
      * @param {number} id - The id to check.
      * @returns {number} - The index of the item in quick use or -1 if not found.
      */
-    public isItemInQuickUse(component: string, id: number): number {
+    isItemInQuickUse(component, id) {
         for (const index in this.quickUse) {
             const item = this.quickUse[index];
             if (item && item.component === component && item.id === id) {
@@ -161,7 +153,7 @@ export class Inventory {
      * @param palette clothing palette id
      * @returns void
      */
-    public updateOnScreenPed(player: PlayerMp, type: "prop" | "clothes", componentid: number, drawableid: number, texture: number, palette: number = 2) {
+    updateOnScreenPed(player, type, componentid, drawableid, texture, palette = 2) {
         return player.call(type === "prop" ? "client:inventory:updatePedProp" : "client:inventory:updatePedComponent", [componentid, drawableid, texture, palette]);
     }
 
@@ -172,7 +164,7 @@ export class Inventory {
      * @param texture clothing texture id
      * @returns void
      */
-    public updatePlayerTorso(player: PlayerMp, drawable: number, texture: number) {
+    updatePlayerTorso(player, drawable, texture) {
         try {
             const freemodeModels = [mp.joaat("mp_m_freemode_01"), mp.joaat("mp_f_freemode_01")];
             const isMaleModel = player.model === freemodeModels[0];
@@ -196,7 +188,7 @@ export class Inventory {
      * @param slotnumber slot number based on INVENTORY_CLOTHING
      * @returns void
      */
-    public removeClothes(player: PlayerMp, slotnumber: number): void {
+    removeClothes(player, slotnumber) {
         if (!player || !mp.players.exists(player) || slotnumber === inventoryAssets.INVENTORY_CLOTHING.TYPE_WALLET) return;
         const sex = player.model === mp.joaat("mp_m_freemode_01") ? 0 : 1;
         const default_clothes = defaultClothes[slotnumber][sex];
@@ -211,7 +203,7 @@ export class Inventory {
         }
     }
 
-    public convertUndershirtToShirt(undershirtid: number): number {
+    convertUndershirtToShirt(undershirtid) {
         return -1;
     }
 
@@ -219,10 +211,10 @@ export class Inventory {
      * Loads clothes or removes clothes based on the provided data.
      * @param {PlayerMp} player The player to load or remove clothes for.
      * @param {number} slotnumber The slot number indicating the type of clothing.
-     * @param {{ component: number; drawable: number; texture: number } | null} data The data containing component, drawable, and texture information, or null to remove clothes.
+     * @param {{ component; drawable; texture } | null} data The data containing component, drawable, and texture information, or null to remove clothes.
      * @returns {void}
      */
-    public loadClothes(player: PlayerMp, slotnumber: number, data: { component: number; drawable: number; texture: number } | null): void {
+    loadClothes(player, slotnumber, data) {
         data === null ? this.removeClothes(player, slotnumber) : this.setClothes(player, slotnumber, data);
     }
 
@@ -230,10 +222,10 @@ export class Inventory {
      * Sets clothes or props for a player based on the slot number and provided data.
      * @param {PlayerMp} player The player to set clothes or props for.
      * @param {number} slotnumber The slot number indicating the type of clothing or prop.
-     * @param {{ component: number; drawable: number; texture: number }} data The data containing component, drawable, and texture information.
+     * @param {{ component; drawable; texture }} data The data containing component, drawable, and texture information.
      * @returns {void}
      */
-    public setClothes(player: PlayerMp, slotnumber: number, data: { component: number; drawable: number; texture: number }): void {
+    setClothes(player, slotnumber, data) {
         if (!mp.players.exists(player)) return;
         if (typeof data.component == "undefined" || isNaN(data.component) || isNaN(data.drawable) || isNaN(data.texture)) return;
 
@@ -310,7 +302,7 @@ export class Inventory {
      * @param {PlayerMp} player The player whose clothes need to be reloaded.
      * @returns {void}
      */
-    public reloadClothes(player: PlayerMp): void {
+    reloadClothes(player) {
         Object.entries(this.items.clothes).forEach(([index, clothing]) => {
             if (!clothing) return this.removeClothes(player, parseInt(index));
             const clothingKey = clothing.key?.replace(clothing.type, "");
@@ -323,7 +315,7 @@ export class Inventory {
      * @param {PlayerMp} player The player whose clothes need to be reset.
      * @returns {void}
      */
-    public resetClothes(player: PlayerMp): void {
+    resetClothes(player) {
         Object.values(this.items.clothes).forEach((e, i) => {
             this.removeClothes(player, i);
         });
@@ -333,7 +325,7 @@ export class Inventory {
      * @param {PlayerMp} player The player whose props need to be reset.
      * @returns {void}
      */
-    public resetProps(player: PlayerMp): void {
+    resetProps(player) {
         Object.values(this.items.clothes)
             .filter((x) => x && x.typeCategory === RageShared.Enums.ITEM_TYPE_CATEGORY.TYPE_PROP)
             .forEach((e, i) => {
@@ -341,13 +333,13 @@ export class Inventory {
             });
     }
 
-    public getItemModel(itemType: RageShared.Enums.ITEM_TYPES) {
+    getItemModel(itemType) {
         const item = inventoryAssets.items[itemType];
         if (!item) return null;
         return item.modelHash;
     }
 
-    getItemAndStack(itemType: RageShared.Enums.ITEM_TYPES) {
+    getItemAndStack(itemType) {
         return this.getItemsInCategoryByHashName([inventoryAssets.INVENTORY_CATEGORIES.POCKETS], itemType);
     }
 
@@ -357,11 +349,11 @@ export class Inventory {
      * @param {string} itemHash -> Item hash name
      * @returns -> An array of items.
      */
-    async getItemsByHashName(itemHash: RageShared.Enums.ITEM_TYPES): Promise<RageShared.Interfaces.Inventory.IInventoryItem[]> {
-        let foundItems: RageShared.Interfaces.Inventory.IInventoryItem[] = [];
+    async getItemsByHashName(itemHash) {
+        let foundItems = [];
 
         for (const getcategory in this.items) {
-            let category = getcategory as inventoryAssets.INVENTORY_CATEGORIES;
+            let category = getcategory;
             for (const item of Object.values(this.items[category])) {
                 if (!item) continue;
                 if (item.type !== null && item.count !== item.maxStack && item.type === itemHash) {
@@ -372,11 +364,11 @@ export class Inventory {
         return foundItems;
     }
 
-    getItemsInCategoryByHashName(category: inventoryAssets.INVENTORY_CATEGORIES[], itemHash: RageShared.Enums.ITEM_TYPES): RageShared.Interfaces.Inventory.IInventoryItem[] {
-        let foundItems: RageShared.Interfaces.Inventory.IInventoryItem[] = [];
+    getItemsInCategoryByHashName(category, itemHash) {
+        let foundItems = [];
 
         for (const getcategory in this.items) {
-            let categories = getcategory as inventoryAssets.INVENTORY_CATEGORIES;
+            let categories = getcategory;
             if (!category.includes(categories)) continue;
 
             for (const item of Object.values(this.items[categories])) {
@@ -390,10 +382,10 @@ export class Inventory {
     }
 
     //this method will not check for item count
-    getItemsByHashNameEx(itemHash: RageShared.Enums.ITEM_TYPES) {
-        let foundItems: RageShared.Interfaces.Inventory.IInventoryItem[] = [];
+    getItemsByHashNameEx(itemHash) {
+        let foundItems = [];
         for (const getcategory in this.items) {
-            let category = getcategory as inventoryAssets.INVENTORY_CATEGORIES;
+            let category = getcategory;
             for (const item of Object.values(this.items[category])) {
                 if (!item) continue;
                 if (item.type !== null && item.type === itemHash) {
@@ -405,9 +397,9 @@ export class Inventory {
         return foundItems;
     }
 
-    getItemByUUID(hashKey: string): RageShared.Interfaces.Inventory.IInventoryItem | null {
+    getItemByUUID(hashKey) {
         for (const getcategory in this.items) {
-            let category = getcategory as inventoryAssets.INVENTORY_CATEGORIES;
+            let category = getcategory;
             for (const item of Object.values(this.items[category])) {
                 if (!item) continue;
                 if (item.hash === hashKey) {
@@ -418,8 +410,8 @@ export class Inventory {
         return null;
     }
 
-    async getItemWithHigherCount(inv: typeof this.items, itemHash: string) {
-        let foundItem: any = null;
+    async getItemWithHigherCount(inv, itemHash) {
+        let foundItem = null;
         for (const [key, value] of Object.entries(inv)) {
             if (key === "clothes" || key === "quickUse" || key === "wallet") continue;
             const entryValue = Object.values(value);
@@ -433,9 +425,9 @@ export class Inventory {
         return foundItem;
     }
 
-    async getAllCountByItemType(inv: typeof this.items, itemHash: string) {
-        let foundCount: number = 0;
-        let itemsInvolved: string[] = [];
+    async getAllCountByItemType(inv, itemHash) {
+        let foundCount = 0;
+        let itemsInvolved = [];
         for (const [key, value] of Object.entries(inv)) {
             if (key === "clothes" || key === "quickUse") continue;
 
@@ -452,11 +444,11 @@ export class Inventory {
         return { items: itemsInvolved, count: foundCount };
     }
 
-    getItemSlotComponentByHash(inv: any, hashKey: string): { component: string | null; slot: number | null } | null {
+    getItemSlotComponentByHash(inv, hashKey) {
         if (typeof inv !== "object" || !inv) return null;
-        let foundItem = { component: null as string | null, slot: null as number | null };
-        for (const [key, value] of Object.entries<any>(inv)) {
-            for (let i = 0; i < Object.values<any>(value).length; i++) {
+        let foundItem = { component: null, slot: null };
+        for (const [key, value] of Object.entries < any > (inv)) {
+            for (let i = 0; i < Object.values < any > (value).length; i++) {
                 if (!value[i].hash) continue;
                 if (value[i].hash === hashKey) {
                     foundItem = { component: key, slot: i };
@@ -467,11 +459,11 @@ export class Inventory {
         return foundItem;
     }
 
-    async getItemSlotComponentByHashKey(hashKey: string): Promise<{ component: string | null; slot: number | null } | null> {
-        let foundItem = { component: null as string | null, slot: null as number | null };
-        for (const [key, value] of Object.entries<any>(this.items)) {
+    async getItemSlotComponentByHashKey(hashKey) {
+        let foundItem = { component: null, slot: null };
+        for (const [key, value] of Object.entries < any > (this.items)) {
             if (key === "clothes" || key === "quickUse" || key === "wallet") continue;
-            for (let i = 0; i < Object.values<any>(value).length; i++) {
+            for (let i = 0; i < Object.values < any > (value).length; i++) {
                 if (!value[i].hash) continue;
                 if (value[i].hash === hashKey) {
                     foundItem = { component: key, slot: i };
@@ -482,10 +474,10 @@ export class Inventory {
         return foundItem;
     }
 
-    async getClothesItemData(inv: any, hashKey: string): Promise<{ component: string | null; slot: number | null } | null> {
+    async getClothesItemData(inv, hashKey) {
         if (typeof inv != "object" || !inv) return null;
-        let foundItem = { component: null as string | null, slot: null as number | null };
-        for (const [key, value] of Object.entries<any>(inv)) {
+        let foundItem = { component: null, slot: null };
+        for (const [key, value] of Object.entries < any > (inv)) {
             if (key === "quickUse" || key === "backpack" || key === "pockets" || key === "wallet") continue;
             for (let i = 0; i < Object.values(value).length; i++) {
                 if (!value[i].hash) continue;
@@ -498,7 +490,7 @@ export class Inventory {
         return foundItem;
     }
 
-    getCountStack(item: RageShared.Interfaces.Inventory.IInventoryItem) {
+    getCountStack(item) {
         if (item.type === null) return -1;
 
         let presset = inventoryAssets.items[item.type];
@@ -515,7 +507,7 @@ export class Inventory {
         return result;
     }
 
-    public loadInventory(player: PlayerMp): void {
+    loadInventory(player) {
         if (!player || !this.items) return;
 
         for (let i = 0; i <= 13; i++) {
@@ -531,7 +523,7 @@ export class Inventory {
         }
     }
 
-    setInventory(player: PlayerMp): void {
+    setInventory(player) {
         try {
             let data = { pockets: this.items.pockets };
             player.call("client::eventManager", ["cef::inventory:setMaxWeight", this.getWeight()]);
@@ -540,7 +532,8 @@ export class Inventory {
             player.call("client::eventManager", ["cef::inventory:setClothes", JSON.stringify(this.items.clothes)]);
 
             const droppedItems = ItemObject.fetchInRange(player, 2);
-            const groundItems: { [key: number]: RageShared.Interfaces.Inventory.IInventoryItem | null } = {};
+            const groundItems = [];
+
 
             for (let i = 0; i < 24; i++) {
                 groundItems[i] = droppedItems[i] ?? null;
@@ -553,31 +546,31 @@ export class Inventory {
         }
     }
 
-    async save(player: PlayerMp): Promise<void> {
+    async save(player) {
         //save data here
     }
 
     //#region Weapon
-    isWeapon(item: RageShared.Interfaces.Inventory.IInventoryItem): boolean {
+    isWeapon(item) {
         return item.typeCategory === RageShared.Enums.ITEM_TYPE_CATEGORY.TYPE_WEAPON;
     }
 
-    isAmmoItem(item: RageShared.Interfaces.Inventory.IInventoryItem): boolean {
+    isAmmoItem(item) {
         if (item.type === null) return false;
-        const ammoItems: string[] = [];
+        const ammoItems = [];
         return ammoItems.includes(item.type);
     }
 
-    async reloadWeaponAmmo(player: PlayerMp, itemHash: string) {
+    async reloadWeaponAmmo(player, itemHash) {
         try {
             if (player.fastSlotActive === null || player.fastSlotActive < 0) return;
 
-            let ammoHash = player.getVariable("ammoHash") as { items: string[]; count: number };
-            const weaponGroup: number = await player.callProc("client::proc:getWeaponTypeGroup", [player.weapon]);
+            let ammoHash = player.getVariable("ammoHash")
+            const weaponGroup = await player.callProc("client::proc:getWeaponTypeGroup", [player.weapon]);
 
             if (!weaponGroup || weaponGroup === RageShared.Enums.WEAPON_GROUP.UNKNOWN) return;
 
-            const ammoTypeMap: { [key: number]: string } = {
+            const ammoTypeMap = {
                 [RageShared.Enums.WEAPON_GROUP.HANDGUNS]: inventoryAssets.AMMO_TYPES.TYPE_PISTOL,
                 [RageShared.Enums.WEAPON_GROUP.SUBMACHINE]: inventoryAssets.AMMO_TYPES.TYPE_SMG,
                 [RageShared.Enums.WEAPON_GROUP.SHOTGUN]: inventoryAssets.AMMO_TYPES.TYPE_GUAGE,
@@ -711,7 +704,7 @@ export class Inventory {
         return foundPistol;
         // let result = this.getItemByHash( [ INVENTORY_CATEGORIES.POCKETS, INVENTORY_CATEGORIES.BACKPACK, INVENTORY_CATEGORIES.WALLET ], documentName );
     }
-    hasWeaponInFastSlot(type: RageShared.Enums.ITEM_TYPES): boolean {
+    hasWeaponInFastSlot(type) {
         for (const itemInFastSlot of Object.values(this.quickUse)) {
             if (!itemInFastSlot) {
                 return false;
@@ -725,11 +718,11 @@ export class Inventory {
     }
 
     //#endregion
-    getActualWeight(): number {
+    getActualWeight() {
         let currentweight = 0.0;
-        for (const [category, items] of Object.entries<any>(this.items)) {
+        for (const [category, items] of Object.entries < any > (this.items)) {
             if (category === "clothes" || category === "quickUse" || category === "wallet") continue;
-            for (const [key, data] of Object.entries<RageShared.Interfaces.Inventory.IInventoryItem>(items)) {
+            for (const [key, data] of Object.entries < RageShared.Interfaces.Inventory.IInventoryItem > (items)) {
                 if (data.type === null) continue;
                 currentweight += data.weight * data.count;
             }
@@ -737,7 +730,7 @@ export class Inventory {
         return parseFloat(currentweight.toFixed(3));
     }
 
-    getWeight(): number {
+    getWeight() {
         let weight = this.weight;
         if (this.items.clothes[inventoryAssets.INVENTORY_CLOTHING.TYPE_BACKPACK]?.isPlaced) {
             weight += backpackWeight[this.items.clothes[inventoryAssets.INVENTORY_CLOTHING.TYPE_BACKPACK].quality];
@@ -766,7 +759,7 @@ export class Inventory {
         return weight;
     }
 
-    checkWeight(newaddition: number): boolean {
+    checkWeight(newaddition) {
         let totalweight = this.getWeight();
         let takenweight = this.getItemsWeight();
         let difference = totalweight - takenweight;
@@ -776,7 +769,7 @@ export class Inventory {
 
     getFreeSlotCount() {
         let slots = 0;
-        let pocketItems: any = Object.values(this.items.pockets);
+        let pocketItems = Object.values(this.items.pockets);
         for (let i = 0; i < pocketItems.length; i++) {
             if (pocketItems[i].type === null) slots += 1;
         }
@@ -791,15 +784,15 @@ export class Inventory {
         return slots;
     }
 
-    async dropItem(player: PlayerMp, itemData: string) {
+    async dropItem(player, itemData) {
         return await dropInventoryItem(player, itemData).catch((err) => console.log("dropItem: ", err));
     }
 
-    splitStack(player: PlayerMp, data: any) {
+    splitStack(player, data) {
         return splitInventoryItem(player, data);
     }
 
-    async addPlayerItem(item: RageShared.Interfaces.Inventory.IInventoryItem) {
+    async addPlayerItem(item) {
         try {
             let { itemIndex, type } = this.getFreeSlot();
             if (itemIndex === -1) return false;
@@ -812,7 +805,7 @@ export class Inventory {
         }
     }
 
-    async addPlayerItemEx(item: RageShared.Interfaces.Inventory.IInventoryItem, category: inventoryAssets.INVENTORY_CATEGORIES, slot: number) {
+    async addPlayerItemEx(item, category, slot) {
         try {
             if (this.items[category][slot] === null) {
                 this.items[category][slot] = item;
@@ -825,7 +818,7 @@ export class Inventory {
         }
     }
 
-    async addMultipleItems(items: RageShared.Interfaces.Inventory.IInventoryItem[]) {
+    async addMultipleItems(items) {
         try {
             let itemCount = items.length;
             let { itemIndex, type } = this.getFreeSlot();
@@ -840,7 +833,7 @@ export class Inventory {
         }
     }
 
-    async addCountToPlayerItem(player: PlayerMp, item: RageShared.Interfaces.Inventory.IInventoryItem, count: number) {
+    async addCountToPlayerItem(player, item, count) {
         try {
             if (item.type === null) return;
 
@@ -873,11 +866,11 @@ export class Inventory {
         }
     }
 
-    async manageFastSlots(player: PlayerMp, event: any) {
+    async manageFastSlots(player, event) {
         await manageInventoryFastSlot(player, event);
     }
 
-    async pickupItem(player: PlayerMp, data: string) {
+    async pickupItem(player, data) {
         // const { type, count } = JSON.parse(data);
         // const weaponAmmo = ["pistolAmmo", "shotgunAmmo", "smgAmmo", "assaultrifleAmmo"];
         // console.log(count, player.interactObject.count);
@@ -902,28 +895,25 @@ export class Inventory {
         // player.playDurationAnimation("random@domestic", "pickup_low", 1, 1500);
     }
 
-    async moveItem(player: PlayerMp, data: string): Promise<void> {
+    async moveItem(player, data) {
         moveInventoryItem(player, data);
     }
 
-    openItem(player: PlayerMp, data: any): void {
+    openItem(player, data) {
         openInventoryItem(player, data);
     }
 
-    async useItem(player: PlayerMp, data: string): Promise<void> {
+    async useItem(player, data) {
         await useInventoryItem(player, data);
     }
 
-    public deleteItemStack(player: PlayerMp, data: string): void {
+    deleteItemStack(player, data) {
         if (!mp.players.exists(player)) return;
 
         try {
-            const { item }: { item: RageShared.Interfaces.Inventory.IInventoryItem } = JSON.parse(data);
+            const { item } = JSON.parse(data);
 
-            const source = this.getItemSlotComponentByHash(this.items, item.hash) as {
-                component: inventoryAssets.INVENTORY_CATEGORIES | null;
-                slot: number | null;
-            } | null;
+            const source = this.getItemSlotComponentByHash(this.items, item.hash)
 
             if (!source || !source.component || source.slot === null) return;
 
@@ -952,13 +942,13 @@ export class Inventory {
         }
     }
 
-    deleteItem(uuid: string): void {
+    deleteItem(uuid) {
         try {
             const { items, quickUse } = this;
 
             for (const category in items) {
                 if (Object.prototype.hasOwnProperty.call(items, category)) {
-                    const categoryItems = items[category as inventoryAssets.INVENTORY_CATEGORIES];
+                    const categoryItems = items[category];
 
                     for (const [slot, item] of Object.entries(categoryItems)) {
                         if (!item) continue;
@@ -970,7 +960,7 @@ export class Inventory {
                             if (fastSlotIndex !== -1) {
                                 quickUse[fastSlotIndex] = null;
                             }
-                            items[category as inventoryAssets.INVENTORY_CATEGORIES][parsedSlot] = null;
+                            items[category][parsedSlot] = null;
                             return;
                         }
                     }
@@ -981,7 +971,7 @@ export class Inventory {
         }
     }
 
-    public checkQuickUse(component: string, slot: number) {
+    checkQuickUse(component, slot) {
         let fastSlot = -1;
         for (let [index, e] of Object.entries(this.quickUse)) {
             if (!e) continue;
@@ -993,3 +983,5 @@ export class Inventory {
         return fastSlot;
     }
 }
+
+module.exports = { Inventory }

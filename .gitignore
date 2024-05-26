@@ -138,7 +138,6 @@ package-lock.json
 build
 client_packages/app.js
 
-packages/*
 dotnet
 bin/*
 

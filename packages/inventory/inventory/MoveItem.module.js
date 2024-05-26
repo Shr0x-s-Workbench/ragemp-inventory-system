@@ -1,18 +1,17 @@
-import { v4 } from "uuid";
-import { ItemObject } from "./ItemObject.class";
-import { inventoryAssets } from "./Items.module";
+const { v4 } = require("uuid");
+const { ItemObject } = require("./ItemObject.class");
 
-type MovingComponent = inventoryAssets.INVENTORY_CATEGORIES | "quickUse" | "groundItems";
+// type MovingComponent = inventoryAssets.INVENTORY_CATEGORIES | "quickUse" | "groundItems";
 
-interface IMovingData {
-    source: { slot: string; component: MovingComponent };
-    target: { slot: string; component: MovingComponent; item: RageShared.Interfaces.Inventory.IInventoryItem };
-    item: RageShared.Interfaces.Inventory.IInventoryItem;
-}
+// interface IMovingData {
+//     source: { slot: string; component: MovingComponent };
+//     target: { slot: string; component: MovingComponent; item: RageShared.Interfaces.Inventory.IInventoryItem };
+//     item: RageShared.Interfaces.Inventory.IInventoryItem;
+// }
 
-async function moveQuickuseItem(player: PlayerMp, data: string): Promise<void> {
+async function moveQuickuseItem(player, data) {
     if (!player.inventory) return;
-    const { item, source, target }: IMovingData = JSON.parse(data);
+    const { item, source, target } = JSON.parse(data);
 
     const playerItem = player.inventory.getItemByUUID(item.hash);
     if (!playerItem) {
@@ -58,11 +57,11 @@ async function moveQuickuseItem(player: PlayerMp, data: string): Promise<void> {
                 weaponhash: mp.joaat(item.type)
             };
 
-            player.inventory.quickUse[parseInt(droppedTo.slot)] = { component: draggedFrom.component as "pockets", id: parseInt(draggedFrom.slot) };
+            player.inventory.quickUse[parseInt(droppedTo.slot)] = { component: draggedFrom.component, id: parseInt(draggedFrom.slot) };
             player.inventory.setInventory(player);
             return;
         }
-        player.inventory.quickUse[parseInt(droppedTo.slot)] = { component: draggedFrom.component as "pockets", id: parseInt(draggedFrom.slot) };
+        player.inventory.quickUse[parseInt(droppedTo.slot)] = { component: draggedFrom.component, id: parseInt(draggedFrom.slot) };
         player.inventory.setInventory(player);
         return;
     }
@@ -74,22 +73,17 @@ async function moveQuickuseItem(player: PlayerMp, data: string): Promise<void> {
     }
 }
 
-async function moveClothingItem(player: PlayerMp, data: string): Promise<void> {
+async function moveClothingItem(player, data) {
     try {
         if (!mp.players.exists(player) || !player.inventory) return;
 
-        const { item, source, target } = JSON.parse(data) as {
-            item: RageShared.Interfaces.Inventory.IInventoryItem;
-            source: { slot: number; component: inventoryAssets.INVENTORY_CATEGORIES | "groundItems" };
-            target: { slot: number; component: inventoryAssets.INVENTORY_CATEGORIES; item: RageShared.Interfaces.Inventory.IInventoryItem };
-        };
-
+        const { item, source, target } = JSON.parse(data)
         const draggedFrom = source;
         const droppedTo = target;
 
         const inventory = player.inventory;
 
-        const notifyPlayer = (message: string) => {
+        const notifyPlayer = (message) => {
             player.outputChatBox(message);
         };
 
@@ -136,7 +130,7 @@ async function moveClothingItem(player: PlayerMp, data: string): Promise<void> {
 
             if (droppedToData && droppedToData.isPlaced) {
                 const oldClothes = { ...droppedToData, isPlaced: false };
-                inventory.items[droppedTo.component as "clothes"][droppedTo.slot] = { ...draggedFromData, isPlaced: true };
+                inventory.items[droppedTo.component][droppedTo.slot] = { ...draggedFromData, isPlaced: true };
                 inventory.items[draggedFrom.component][draggedFrom.slot] = oldClothes;
                 notifyPlayer("You swapped clothes");
                 inventory.loadClothes(player, droppedTo.slot, JSON.parse(draggedFromData.key.replace(draggedFromData.type, "")));
@@ -154,11 +148,11 @@ async function moveClothingItem(player: PlayerMp, data: string): Promise<void> {
     }
 }
 
-export const moveInventoryItem = async (player: PlayerMp, data: string): Promise<void> => {
+const moveInventoryItem = async (player, data) => {
     try {
         if (!mp.players.exists(player) || !player.inventory) return;
 
-        const { item, source, target }: IMovingData = JSON.parse(data);
+        const { item, source, target } = JSON.parse(data);
 
         const draggedFrom = source;
         const droppedTo = target;
@@ -170,7 +164,7 @@ export const moveInventoryItem = async (player: PlayerMp, data: string): Promise
                 if (!droppedItem) return;
 
                 droppedItem.remove();
-                player.inventory.items[droppedTo.component as "clothes" | "pockets"][parseInt(droppedTo.slot)] = { ...item, hash: v4() };
+                player.inventory.items[droppedTo.component][parseInt(droppedTo.slot)] = { ...item, hash: v4() };
                 player.inventory.setInventory(player);
                 return;
             }
@@ -245,3 +239,4 @@ export const moveInventoryItem = async (player: PlayerMp, data: string): Promise
         console.log("moveItemToTrunk err: ", err);
     }
 };
+module.exports = { moveInventoryItem }

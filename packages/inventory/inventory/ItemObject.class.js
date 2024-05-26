@@ -1,45 +1,8 @@
-import { inventoryAssets } from "./Items.module";
-import { v4 as uuidv4 } from "uuid";
+class ItemObject {
+    static List = {};
 
-export class ItemObject {
-    static List: { [key: string]: ItemObject } = {};
 
-    image: string;
-    hash: string;
-    dimension: number;
-    type: string;
-    key: string;
-
-    model: string;
-    coords: Vector3;
-    rotation: Vector3;
-    collision: boolean;
-    name: string;
-    range: number;
-    count: number;
-    assets: RageShared.Interfaces.Inventory.IInventoryItem;
-    itemType: string;
-
-    timeout: NodeJS.Timeout | null = null;
-
-    object: ObjectMp;
-
-    constructor(data: {
-        image: string;
-        hash: string;
-        dimension?: number;
-        type: string;
-        key: string;
-        model: string;
-        coords: Vector3;
-        rotation: Vector3;
-        collision: boolean;
-        name: string;
-        range: number;
-        count: number;
-        itemType: string;
-        assets: any;
-    }) {
+    constructor(data) {
         this.image = data.image;
         this.hash = data.hash;
         this.dimension = data.dimension || 0;
@@ -70,7 +33,7 @@ export class ItemObject {
 
         ItemObject.List[this.hash] = this;
     }
-    public async update() {
+    async update() {
         this.object.setVariables({
             is_item: true,
             hash: this.hash,
@@ -84,7 +47,7 @@ export class ItemObject {
             }
         });
     }
-    public remove() {
+    remove() {
         if (this.object && mp.objects.exists(this.object)) {
             this.object.destroy();
         }
@@ -95,24 +58,18 @@ export class ItemObject {
         delete ItemObject.List[this.hash];
     }
 
-    static fetchInRange(player: PlayerMp, range: number = 1) {
+    static fetchInRange(player, range = 1) {
         return Object.values(ItemObject.List)
             .filter((x) => player.dist(x.coords) <= range)
             .map((x) => x.assets);
     }
 
-    static getItem(hash: string) {
+    static getItem(hash) {
         return Object.values(ItemObject.List).find((x) => x.assets?.hash === hash)?.assets ?? null;
     }
-    static deleteDroppedItemByHash(hash: string) {
+    static deleteDroppedItemByHash(hash) {
         const item = Object.values(ItemObject.List).find((x) => x.assets?.hash === hash) ?? null;
         if (item) item.remove();
     }
 }
-
-function interactEntity(player: PlayerMp, hash: number) {}
-
-function closeCEF(player: PlayerMp, type: any) {}
-
-mp.events.add("server::entitySync:interact", interactEntity);
-mp.events.add("server::player:closeCEF", closeCEF);
+module.exports = { ItemObject }

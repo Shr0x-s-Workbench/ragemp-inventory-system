@@ -1,8 +1,6 @@
-interface IWeapon {
-    [key: string]: number;
-}
 
-export const weaponHash: IWeapon = {
+
+const weaponHash = {
     unarmed: 2725352035,
     knife: 2578778090,
     nightstick: 1737195953,
@@ -85,3 +83,4 @@ export const weaponHash: IWeapon = {
     pipebomb: 3125143736,
     parachute: 4222310262
 };
+module.exports = { weaponHash }

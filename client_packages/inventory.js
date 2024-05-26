@@ -2,14 +2,13 @@
  * Class responsible for managing the player's inventory.
  */
 class _PlayerInventory {
-    private readonly url: string = "http://package2/build/index.html";
-    inventoryUI: BrowserMp;
-    currentPage: string | undefined;
+    url = "http://package2/build/index.html";
+    inventoryUI;
+    currentPage;
 
-    screenPedHandle: Handle;
+    screenPedHandle;
 
-    isOpen: boolean = false;
-    onTick: NodeJS.Timeout | null = null;
+    isOpen = false;
 
     constructor() {
         this.screenPedHandle = 0;
@@ -41,7 +40,7 @@ class _PlayerInventory {
         mp.events.add("client::eventManager", this.processEvent.bind(this));
     }
 
-    tryParse(obj: any): any {
+    tryParse(obj) {
         try {
             return JSON.parse(obj);
         } catch (_err) {
@@ -52,19 +51,19 @@ class _PlayerInventory {
     /**
      * Updates nearby players.
      */
-    public updateNearbyPlayers() {}
+    updateNearbyPlayers() { }
 
     /**
      * Checks players around the player.
      *
      * @param bool - Whether to check players around or not.
      */
-    public checkPlayersAround(bool: boolean) {}
+    checkPlayersAround(bool) { }
 
     /**
      * Creates a ped screen.
      */
-    public async createPedScreen() {
+    async createPedScreen() {
         try {
             mp.game.ui.setPauseMenuActive(false);
             mp.game.ui.setFrontendActive(false);
@@ -101,7 +100,7 @@ class _PlayerInventory {
             mp.game.invoke("0x98215325A695E78A", false);
 
             mp.console.logWarning(`${mp.peds.at(playerPed.handle).isDead}`);
-        } catch (e: unknown) {
+        } catch (e) {
             if (e instanceof TypeError) mp.console.logWarning(`${JSON.stringify(e.message)}`);
         }
     }
@@ -109,7 +108,7 @@ class _PlayerInventory {
     /**
      * Deletes the ped screen.
      */
-    public deletePedScreen() {
+    deletePedScreen() {
         mp.game.invoke("0xF314CF4F0211894E", 117, 0, 0, 0, 186); // REPLACE_HUD_COLOUR_WITH_RGBA
         mp.game.hud.clearPedInPauseMenu();
         mp.game.ui.setPauseMenuActive(false);
@@ -131,11 +130,11 @@ class _PlayerInventory {
      * @param drawableid - The drawable ID.
      * @param textureid - The texture ID.
      */
-    public setPedProps(propid: number, drawableid: number, textureid: number) {
+    setPedProps(propid, drawableid, textureid) {
         try {
             if (this.screenPedHandle === null) return;
             mp.game.invoke("0x93376B65A266EB5F", this.screenPedHandle, propid, drawableid, textureid, true);
-        } catch (e: unknown) {
+        } catch (e) {
             if (e instanceof TypeError) mp.console.logWarning(`setPedProps || ${JSON.stringify(e.message)}`);
         }
     }
@@ -148,11 +147,11 @@ class _PlayerInventory {
      * @param textureId - The texture ID.
      * @param paletteId - The palette ID.
      */
-    public setPedComponentVariation(componentId: number, drawableId: number, textureId: number, paletteId: number) {
+    setPedComponentVariation(componentId, drawableId, textureId, paletteId) {
         try {
             if (this.screenPedHandle === null) return;
             mp.game.invoke("0x262B14F48D29DE80", this.screenPedHandle, componentId, drawableId, textureId, paletteId);
-        } catch (e: unknown) {
+        } catch (e) {
             if (e instanceof TypeError) mp.console.logWarning(`setPedComponentVariation || ${JSON.stringify(e.message)}`);
         }
     }
@@ -162,7 +161,7 @@ class _PlayerInventory {
      *
      * @param slotNumber - The slot number to toggle.
      */
-    toggleFastSlot(slotNumber: number) {
+    toggleFastSlot(slotNumber) {
         if (mp.game.ui.isPauseMenuActive()) return;
         if (mp.game.ped.getVehicleIsEntering(mp.players.local.handle)) return;
         mp.events.callRemote("server::inventory:quickUse", `k_fastslot${slotNumber}`);
@@ -171,7 +170,7 @@ class _PlayerInventory {
     /**
      * Opens the inventory.
      */
-    public async open() {
+    async open() {
         try {
             this.isOpen = !this.isOpen;
             await this.createPedScreen();
@@ -180,7 +179,7 @@ class _PlayerInventory {
             this.processEvent("cef::inventory:setVisible", true);
             mp.events.callRemote("server::player:loadInventory");
             this.checkPlayersAround(true);
-        } catch (e: unknown) {
+        } catch (e) {
             if (e instanceof TypeError) mp.console.logWarning(`OpenInventory:: >> ${e.message}`);
         }
     }
@@ -188,7 +187,7 @@ class _PlayerInventory {
     /**
      * Closes the inventory.
      */
-    public close() {
+    close() {
         if (!this.isOpen) return;
         this.isOpen = !this.isOpen;
 
@@ -207,7 +206,7 @@ class _PlayerInventory {
      * @param totalAmmo - The total amount of ammo.
      * @param ammoInClip - The amount of ammo in the clip (optional).
      */
-    public async giveWeapon(weapon: number, totalAmmo: number, ammoInClip?: number) {
+    async giveWeapon(weapon, totalAmmo, ammoInClip) {
         if (ammoInClip) {
             mp.players.local.giveWeapon(weapon, totalAmmo, true);
             mp.game.invoke("0xBF0FD6E56C964FCB", mp.players.local.handle, weapon, totalAmmo, false, true);
@@ -222,14 +221,14 @@ class _PlayerInventory {
     /**
      * Reloads the player's weapons.
      */
-    public reloadWeapons() {}
+    reloadWeapons() { }
 
     /**
      * Handles player quit event.
      *
      * @param player - The player who quit.
      */
-    public playerQuit(player: PlayerMp) {
+    playerQuit(player) {
         if (player === mp.players.local) this.deletePedScreen();
     }
 
@@ -237,7 +236,7 @@ class _PlayerInventory {
      * Emits an event to the server with the given data.
      * @param {any} receivedData - The data to send to the server.
      */
-    emitServer(receivedData: any): void {
+    emitServer(receivedData) {
         let data = this.tryParse(receivedData);
         let { event, args } = data;
         Array.isArray(args) ? (args.length === 1 ? mp.events.callRemote(event, JSON.stringify(args[0])) : mp.events.callRemote(event, JSON.stringify(args))) : mp.events.callRemote(event, args);
@@ -247,7 +246,7 @@ class _PlayerInventory {
      * Emits an event to the client with the given data.
      * @param {any} receivedData - The data to send to the client.
      */
-    emitClient(receivedData: any): void {
+    emitClient(receivedData) {
         let data = this.tryParse(receivedData);
         let { event, args } = data;
         if (Array.isArray(args)) {
@@ -262,11 +261,11 @@ class _PlayerInventory {
      * @param {string} eventName - The name of the event to process.
      * @param {...any} args - The arguments to pass to the event handler.
      */
-    processEvent(eventName: string, ...args: any): void {
+    processEvent(eventName, ...args) {
         if (!eventName || !this.inventoryUI) return;
         if (this.inventoryUI && eventName.indexOf("cef::") != -1) {
             let event = eventName.split("cef::")[1];
-            const argsString = args.map((arg: any) => JSON.stringify(arg)).join(", ");
+            const argsString = args.map((arg) => JSON.stringify(arg)).join(", ");
             const script = `
                 window.callHandler("${event}", ${argsString})
             `;
@@ -274,13 +273,13 @@ class _PlayerInventory {
         } else return mp.console.logWarning("Error calling event: " + eventName + " it does not exists.");
     }
 }
-export const Inventory = new _PlayerInventory();
+const Inventory = new _PlayerInventory();
 
 mp.events.add("client::inventory:setVisible", async (enable) => {
     enable ? await Inventory.open() : Inventory.close();
 });
 
-mp.events.add("client::weapon:giveWeapon", async (weapon: number, totalAmmo: number, ammoInClip?: number) => {
+mp.events.add("client::weapon:giveWeapon", async (weapon, totalAmmo, ammoInClip) => {
     await Inventory.giveWeapon(weapon, totalAmmo, ammoInClip).catch((err) => mp.console.logError("An error occurred giving weapon to player " + mp.players.local.name));
 });
 
@@ -307,13 +306,13 @@ mp.events.add("render", () => {
 });
 
 //------------------------------------------------------//
-mp.events.addProc("client::proc:getWeaponTypeGroup", (weaponhash: Hash) => {
+mp.events.addProc("client::proc:getWeaponTypeGroup", (weaponhash) => {
     let weapongroup = mp.game.weapon.getWeapontypeGroup(weaponhash);
     return weapongroup;
 });
 
 //------------------------------------------------------//
-mp.events.addProc("client::proc:getAmmoInClip", (weaponhash: Hash) => {
+mp.events.addProc("client::proc:getAmmoInClip", (weaponhash) => {
     return mp.players.local.getAmmoInClip(weaponhash);
 });
 //------------------------------------------------------//

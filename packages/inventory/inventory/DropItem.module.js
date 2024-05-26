@@ -1,5 +1,5 @@
-import { ItemObject } from "./ItemObject.class";
-import { inventoryAssets } from "./Items.module";
+const { ItemObject } = require("./ItemObject.class");
+const { inventoryAssets } = require("./Items.module");
 
 /**
  * Drops an inventory item from the player's inventory.
@@ -7,11 +7,11 @@ import { inventoryAssets } from "./Items.module";
  * @param {PlayerMp} player - The player dropping the item.
  * @param {string} itemData - The data of the item to drop.
  */
-export const dropInventoryItem = async (player: PlayerMp, itemData: string) => {
+const dropInventoryItem = async (player, itemData) => {
     try {
         if (!player.inventory) return;
 
-        const { item, source }: { item: RageShared.Interfaces.Inventory.IInventoryItem; source: { component: inventoryAssets.INVENTORY_CATEGORIES; slot: string } } = JSON.parse(itemData);
+        const { item, source } = JSON.parse(itemData);
 
         if (!item) return;
 
@@ -85,3 +85,5 @@ export const dropInventoryItem = async (player: PlayerMp, itemData: string) => {
         console.log("dropInventoryItem error: ", err);
     }
 };
+
+module.exports = { dropInventoryItem }

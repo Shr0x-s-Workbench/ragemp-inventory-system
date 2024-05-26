@@ -1,7 +1,7 @@
-import { weaponHash } from "./Weapons.assets";
-import { inventoryAssets } from "./Items.module";
+const { weaponHash } = require("./Weapons.assets");
+const { inventoryAssets } = require("./Items.module");
 
-async function giveWeaponByType(player: PlayerMp, item: RageShared.Interfaces.Inventory.IInventoryItem, weaponGroup: number, itemType: string) {
+async function giveWeaponByType(player, item, weaponGroup, itemType) {
     if (!mp.players.exists(player) || !player.inventory) return;
 
     if (item.type === null) return;
@@ -19,7 +19,7 @@ async function giveWeaponByType(player: PlayerMp, item: RageShared.Interfaces.In
     }
 }
 
-export const manageInventoryFastSlot = async (player: PlayerMp, event: string[]) => {
+const manageInventoryFastSlot = async (player, event) => {
     try {
         if (!mp.players.exists(player) || !player.inventory) return;
         if (event.indexOf("k_fastslot") === -1) return;
@@ -27,7 +27,7 @@ export const manageInventoryFastSlot = async (player: PlayerMp, event: string[])
         const fastslot = player.inventory.quickUse[key - 1];
         if (!fastslot) return null;
 
-        const item = player.inventory.items[fastslot.component as "pockets"][fastslot.id];
+        const item = player.inventory.items[fastslot.component][fastslot.id];
         if (!item) return;
 
         if (player.inventory.isWeapon(item) && item.type) {
@@ -101,3 +101,4 @@ export const manageInventoryFastSlot = async (player: PlayerMp, event: string[])
         console.log("manageInventoryFastSlot err: ", err);
     }
 };
+module.exports = { manageInventoryFastSlot }
