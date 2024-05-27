@@ -40,11 +40,11 @@ class ItemObject {
             image: this.image,
             item_type: this.itemType
         });
-
+        /*
+         * Enable object stream-in 
+         */
         mp.players.forEachInRange(this.object.position, mp.config["stream-distance"], (player) => {
-            if (player.getVariable("loggedin")) {
-                player.call("client::entity:enableStreamin");
-            }
+            player.call("client::inventory:streamInObject");
         });
     }
     remove() {

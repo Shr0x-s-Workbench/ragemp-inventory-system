@@ -1,0 +1,2 @@
+require('./inventory')
+require('./events');

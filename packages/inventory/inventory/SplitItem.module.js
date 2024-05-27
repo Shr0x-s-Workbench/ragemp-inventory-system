@@ -1,5 +1,5 @@
 const { v4 } = require("uuid");
-const uuid = v4;
+const uuidv4 = v4;
 
 const splitInventoryItem = (player, data) => {
     try {

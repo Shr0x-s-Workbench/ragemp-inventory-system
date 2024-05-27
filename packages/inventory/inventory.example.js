@@ -9,6 +9,10 @@ const onPlayerJoin = async (player) => {
     try {
         player.inventory = new Inventory(player, inventorydataPresset.clothes, inventorydataPresset.pockets, inventorydataPresset.quickUse);
         player.cdata = {};
+        player.call("client::inventory:streamInObject");
+        player.setVariable("ammoHash", null);
+        player.setVariable("itemAsAmmo", null);
+        player.fastSlotActive = null;
         player.giveWeaponEx = function (weapon, totalAmmo, ammoInClip) {
             this.call("client::weapon:giveWeapon", [weapon, totalAmmo, ammoInClip]);
         };

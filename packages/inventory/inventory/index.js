@@ -12,7 +12,7 @@ const { ItemObject } = require("./ItemObject.class");
 const torsoDataMale = require("../json/maleTorso.json");
 const femaleTorsos = require("../json/femaleTorso.json");
 
-const uuid = v4;
+const uuidv4 = v4;
 
 
 function tryParse(obj) {
