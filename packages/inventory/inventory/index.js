@@ -24,17 +24,18 @@ function tryParse(obj) {
 }
 
 class Inventory {
+    p; //playerMp
+    items = {
+        clothes: {}, //{[key: number]: null | inventoryitem}
+        pockets: {} //{[key: number]: null | inventoryitem}
+    }
+    quickUse = {
+        //component refers to where the item originally is ('pockets'), id refers to item slot
+        //{[key: number]: null | {component: string, id: number}}
+    }
 
-
-
-    constructor(
-        p,
-        clothes,
-        pockets,
-        quickUse
-    ) {
+    constructor(p, clothes, pockets, quickUse) {
         this.p = p;
-        this.items = {}
 
         this.items.clothes = clothes;
         this.items.pockets = pockets;
@@ -872,28 +873,7 @@ class Inventory {
     }
 
     async pickupItem(player, data) {
-        // const { type, count } = JSON.parse(data);
-        // const weaponAmmo = ["pistolAmmo", "shotgunAmmo", "smgAmmo", "assaultrifleAmmo"];
-        // console.log(count, player.interactObject.count);
-        // if (parseInt(count) === 0 || parseInt(count) < 0) return;
-        // if (!player.interactObject) return;
-        // let item = player.interactObject.assets;
-        // if (isNaN(parseInt(count)) || parseInt(count) > player.interactObject.count) return;
-        // if (this.getActualWeight() + item.weight * count > this.getWeight()) {
-        //     return
-        // }
-        // let result = await this.addCountToPlayerItem(player, item, parseInt(count));
-        // if (!result) return;
-        // if (weaponAmmo.includes(type)) {
-        //     this.reloadWeaponAmmo(player, type);
-        // }
-        // player.interactObject.count -= count;
-        // player.interactObject.assets.count = count;
-        // player.interactObject.assets.hash = uuidv4();
-        // if (player.interactObject.count <= 0) player.interactObject.remove();
-        // player.call("client::cef:close");
-        // player.call("client::eventManager", ["cef::hud:showInteractionButton", false]);
-        // player.playDurationAnimation("random@domestic", "pickup_low", 1, 1500);
+
     }
 
     async moveItem(player, data) {
